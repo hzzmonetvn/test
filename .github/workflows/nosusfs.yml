@@ -109,7 +109,7 @@ jobs:
         if: github.event.inputs.buildToolchains == 'android-tools'
         run: |
     
-          git clone https://android.googlesource.com/kernel/build -b master-kernel-build-2023 --depth=1 build
+          git clone https://android.googlesource.com/kernel/build -b main-kernel-build-2024 --depth=1 build
           
           mkdir -p prebuilts/clang/host/linux-x86
           aria2c -x 16 -s 16 -o clang.tar.gz "https://github.com/topnotchfreaks/clang/releases/download/v1.0.0/clang-r584948b.tar.gz"
