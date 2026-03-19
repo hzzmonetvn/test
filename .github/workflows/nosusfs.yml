@@ -105,24 +105,28 @@ jobs:
           git clone --recursive --branch ${{ github.event.inputs.kernelBranch }} \
             ${{ github.event.inputs.kernelSourceURL }} ${{ env.kernelName }} --depth=1
 
-      - name: "📥 Setup Build Tools (No Repo Sync)"
+      - name: "📥 Setup GKI Build Environment (No Repo)"
         if: github.event.inputs.buildToolchains == 'android-tools'
         run: |
-    
+
+          echo "🚀 Cloning GKI build scripts..."
           git clone https://android.googlesource.com/kernel/build -b main-kernel-build-2024 --depth=1 build
-          
-          mkdir -p prebuilts/clang/host/linux-x86
-          aria2c -x 16 -s 16 -o clang.tar.gz "https://github.com/topnotchfreaks/clang/releases/download/v1.0.0/clang-r584948b.tar.gz"
+
+          echo "📦 Downloading Clang r584948b..."
           mkdir -p prebuilts/clang/host/linux-x86/clang-r584948b
+          aria2c -x 16 -s 16 -o clang.tar.gz "https://github.com/topnotchfreaks/clang/releases/download/v1.0.0/clang-r584948b.tar.gz"
           tar -xzf clang.tar.gz -C prebuilts/clang/host/linux-x86/clang-r584948b
           rm clang.tar.gz
 
-          target_dir="${{ env.kernelDir }}/${{ env.kernelName }}"
+          TARGET_CONFIG="${{ env.kernelDir }}/${{ env.kernelName }}"
           
-          sed -i 's/^CLANG_VERSION=.*/CLANG_VERSION=r584948b/' $target_dir/build.config.constants
-          sed -i '/^DEFCONFIG=gki_defconfig/d' $target_dir/build.config.gki
-          sed -i '$a\DEFCONFIG=${{ env.DEFCONFIG_NAME }}' $target_dir/build.config.gki
-          sed -i '/^POST_DEFCONFIG_CMDS="check_defconfig"/d' $target_dir/build.config.gki
+          echo "⚙️ Patching build configs in $TARGET_CONFIG..."
+          
+          sed -i 's/^CLANG_VERSION=.*/CLANG_VERSION=r584948b/' $TARGET_CONFIG/build.config.constants
+          
+          sed -i '/^DEFCONFIG=gki_defconfig/d' $TARGET_CONFIG/build.config.gki
+          sed -i '$a\DEFCONFIG=${{ env.DEFCONFIG_NAME }}' $TARGET_CONFIG/build.config.gki
+          
           sed -i \
             -e '/^KMI_SYMBOL_LIST_STRICT_MODE=/d' \
             -e '/^TRIM_NONLISTED_KMI=/d' \
@@ -130,8 +134,7 @@ jobs:
             -e '$a\KMI_SYMBOL_LIST_STRICT_MODE=0' \
             -e '$a\TRIM_NONLISTED_KMI=0' \
             -e '$a\KMI_ENFORCED=0' \
-            $target_dir/build.config.gki.aarch64
-
+            $TARGET_CONFIG/build.config.gki.aarch64
           
      
       - name: "💫 Get Toolchains"
