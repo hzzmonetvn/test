@@ -456,13 +456,24 @@ jobs:
 
       - name: "🔨 Build kernel"
         if: github.event.inputs.buildToolchains == 'android-tools'
-        working-directory: ${{ env.WORK_DIR }}
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         run: |
-          if [ "${{ github.event.inputs.LTOoptimizations }}" = "thin" ]; then
-           LTO=thin BUILD_CONFIG=${{ env.kernelDir }}/${{ env.kernelName }}/build.config.gki.aarch64 build/build.sh -j$(nproc --all)
-          else
-           LTO=full BUILD_CONFIG=${{ env.kernelDir }}/${{ env.kernelName }}/build.config.gki.aarch64 build/build.sh -j$(nproc --all)
-          fi
+          echo "🚀 Building kernel using Google Clang..."
+          
+          export PATH="${{ github.workspace }}/prebuilts/clang/host/linux-x86/clang-r584948b/bin:$PATH"
+          export ARCH=arm64
+          export LLVM=1
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CLANG_TRIPLE=aarch64-linux-gnu-
+         
+          mkdir -p out
+          
+          make O=out CC=clang ${{ env.DEFCONFIG_NAME }}
+          
+          make O=out CC=clang \
+            AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy STRIP=llvm-strip \
+            -j$(nproc --all)
+
           
       - name: "👍 Make defconfig"
         if: github.event.inputs.buildToolchains == 'custom-tools'
@@ -486,17 +497,13 @@ jobs:
             OBJCOPY=llvm-objcopy \
             STRIP=llvm-strip \
             -j$(nproc --all)
-          
+            
       - name: 📦 Prepare artifact
         working-directory: ${{ env.WORK_DIR }}
         run: |
          mkdir -p out/dist
 
-         if [ "${{ github.event.inputs.buildToolchains }}" = "android-tools" ]; then
-          src="out/dist/Image"
-         else
-          src="${{ env.kernelDir }}/${{ env.kernelName }}/out/arch/arm64/boot/Image"
-         fi
+         src="${{ env.kernelDir }}/${{ env.kernelName }}/out/arch/arm64/boot/Image"
 
          cp "${src}" "out/dist/Image.${{ matrix.variant }}"
     
