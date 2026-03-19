@@ -110,7 +110,8 @@ jobs:
         working-directory: ${{ env.WORK_DIR }}
         run: |
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android13-5.15-lts --depth=1
-          repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --optimized-fetch -x common
+          repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --optimized-fetch --prune --notcurrent
+          git clone https://android.googlesource.com/kernel/build -b master-kernel-build-2023 --depth=1 build
           
           aria2c -x 16 -s 16 -o prebuilts/clang/host/linux-x86/clang-r584948b.tar.gz "https://github.com/topnotchfreaks/clang/releases/download/v1.0.0/clang-r584948b.tar.gz"
           mkdir -p prebuilts/clang/host/linux-x86/clang-r584948b
