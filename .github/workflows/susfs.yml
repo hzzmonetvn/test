@@ -385,7 +385,7 @@ jobs:
           echo "📦 Installing MamboSU..."
 
           # Install WildKSU with SUSFS
-          curl -LSs "https://raw.githubusercontent.com/RapliVx/KernelSU/refs/heads/susfs-rksu-master/kernel/setup.sh" | bash -s susfs-rksu-master
+          curl -LSs "https://raw.githubusercontent.com/RapliVx/KernelSU/refs/heads/susfs-mambosu-master/kernel/setup.sh" | bash -s susfs-mambo-master
       
           echo "✔ MamboSU installed successfully"
           
